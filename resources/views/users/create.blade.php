@@ -18,9 +18,7 @@
                     <input id="birthday" name="birthday"type="date" min="1900-01-01" class="form-control" required>
                 </div>
                 <div class="col">
-                    <input name="phone_number" type="tel" class="form-control"
-                           pattern="/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/"
-                           placeholder="Phone number">
+                    <input id="phone-number" name="phone_number" type="number" class="form-control" placeholder="Phone number">
                 </div>
             </div>
             <div class="row">
@@ -56,20 +54,22 @@
                                passwordConfirmElem = document.getElementById('pass-conf'),
                                errorMessageElem = document.getElementById("error-message"),
                                successMessageElem = document.getElementById("success-message"),
+                               phoneNumberElem = document.getElementById("phone-number"),
                                passMatch = (passwordElem.value == passwordConfirmElem.value) ? true : false,
-                               formCheck = (form.checkValidity() !== false) ? true : false;
-
+                               formCheck = (form.checkValidity() !== false) ? true : false,
+                               phoneNumberLength = (phoneNumberElem.value.length < 16) ? true : false;
                            e.preventDefault();
 
-                           if (!passMatch || !formCheck) {
+                           if (!passMatch || !formCheck || !phoneNumberLength) {
                                if(!passMatch) setMessage(errorMessageElem, "The password confirm and password must match.");
+                               if(!phoneNumberLength) setMessage(errorMessageElem, "Please, enter phone number a max of 15 digits.");
                                if(!formCheck) setMessage(errorMessageElem, "Please, fill all required fields.");
+                               form.classList.add('was-validated');
                                e.stopPropagation();
                                return;
                            }
 
                            errorMessageElem.style.display = 'none';
-                           form.classList.add('was-validated');
 
                            $.ajax({
                                type: "POST",
