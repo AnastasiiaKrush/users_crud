@@ -17,14 +17,14 @@
             <td>
                 <a class="badge badge-primary badge-pill" href="/users/<?php echo $user->id ?>">View</a>
                 <a class="badge badge-primary badge-pill" href="/users/<?php echo $user->id ?>/edit">Edit</a>
-                <a id="user-delete" class="badge badge-primary badge-pill" href="/users/<?php echo $user->id ?>">Delete</a>
+                <a class="badge badge-primary badge-pill user-delete" href="/users/<?php echo $user->id ?>">Delete</a>
             </td>
         </tr>
         <?php endforeach; ?>
         </tbody>
     </table>
     <script>
-        $('#user-delete').click(function(e){
+        $('.user-delete').click(function(e){
             let hrefArr = this.getAttribute('href').split('/');
             let userId = hrefArr[2];
 
