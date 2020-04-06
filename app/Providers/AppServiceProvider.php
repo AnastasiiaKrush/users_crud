@@ -27,10 +27,8 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Register search client.
-     *
-     * @return ClientBuilder
      */
-    private function bindSearchClient(): ClientBuilder
+    private function bindSearchClient()
     {
         $this->app->bind(Client::class, function ($app) {
             return ClientBuilder::create()
