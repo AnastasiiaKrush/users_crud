@@ -4,10 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Search\Searchable;
 
 class User extends Model
 {
     use SoftDeletes;
+    use Searchable;
 
     /**
      * The attributes that are mass assignable.
@@ -15,15 +17,6 @@ class User extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'birthday', 'phone_number', 'email', 'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password'
+        'id', 'name', 'birthday', 'phone_number', 'email', 'password',
     ];
 }

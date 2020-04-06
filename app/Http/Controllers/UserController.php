@@ -5,38 +5,64 @@ namespace App\Http\Controllers;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Users\UsersRepository;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of users.
      *
-     * @return \Illuminate\Http\Response
+     * @param UsersRepository $repository
+     * @return View
      */
-    public function index()
+    public function index(UsersRepository $repository): View
     {
-        $users = User::get();
+        $users = $repository->search((string)request('q'));
 
         return view('users.index', ['users' => $users]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Return users from index.
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param UsersRepository $repository
+     * @return JsonResponse
      */
-    public function create()
+    public function getUsers(Request $request, UsersRepository $repository): JsonResponse
+    {
+        $count = $request->limit;
+        $page = $request->offset / $count;
+        $totalCount = $repository->count();
+
+        $users = $repository->search((string)request('q'), $page, $count);
+
+        return response()->json([
+            'total' => $totalCount,
+            'rows' => $users
+        ], 200);
+    }
+
+    /**
+     * Show the form for creating a new user.
+     *
+     * @return View
+     */
+    public function create(): View
     {
         return view('users.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created user in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param UsersRepository $repository
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request, UsersRepository $repository): JsonResponse
     {
         $request->validate([
             'name' => 'required',
@@ -49,47 +75,46 @@ class UserController extends Controller
             'password_confirm' => 'required|same:password'
         ]);
 
+        $maxId = $repository->getOneWithMaxID()['id'];
+
         $input = array_merge(
             $request->except(['password', 'password_confirm']),
-            ['password' => Hash::make($request->password)]
+            [
+                'password' => Hash::make($request->password),
+                'id' => ++$maxId
+            ]
         );
 
-        $user = User::create($input);
+        $user = new User($input);
 
-        return response()->json([ 'user_id' => $user->id], 200);
+        $repository->create($user);
+
+        return response()->json(['user_id' => $user->id], 200);
     }
 
-
     /**
-     * Display the specified resource.
+     * Display the specified user.
      *
-     * @param  \App\User  $user
-     * @return \Illuminate\Http\Response
+     * @param UsersRepository $repository
+     * @param int $id
+     * @return View
      */
-    public function show(User $user)
+    public function show(UsersRepository $repository, int $id): View
     {
-        return view('users.show',compact('user'));
+        $user = $repository->searchByID($id);
+
+        return view('users.show', compact('user'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update the specified user in storage.
      *
-     * @param  \App\User  $user
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param UsersRepository $repository
+     * @param int $id
+     * @return JsonResponse
      */
-    public function edit(User $user)
-    {
-        return view('users.edit',compact('user'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\User  $user
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, User $user)
+    public function update(Request $request, UsersRepository $repository, int $id): JsonResponse
     {
         $request->validate([
             'name' => 'required',
@@ -97,23 +122,38 @@ class UserController extends Controller
                 'required',
                 'regex:/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/'
             ],
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $id,
         ]);
 
-        $user->update($request->all());
+        $repository->update($id, $request->all());
 
-        return response()->json([ 'user_id' => $user->id], 200);
+        return response()->json(['user_id' => $id], 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Show the form for editing the specified user.
      *
-     * @param  \App\User  $user
-     * @return \Illuminate\Http\Response
+     * @param UsersRepository $repository
+     * @param int $id
+     * @return View
      */
-    public function destroy(User $user)
+    public function edit(UsersRepository $repository, int $id): View
     {
-        $user->delete();
+        $user = $repository->searchByID($id);
+
+        return view('users.edit', compact('user'));
+    }
+
+    /**
+     * Remove the specified user from storage.
+     *
+     * @param UsersRepository $repository
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(UsersRepository $repository, int $id): JsonResponse
+    {
+        $repository->delete($id);
 
         return response()->json([], 200);
     }
