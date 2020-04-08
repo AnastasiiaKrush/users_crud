@@ -34,7 +34,6 @@ class ElasticsearchRepository implements UsersRepository
 
         $searchParams = [
             'index' => $model->getSearchIndex(),
-            'type' => $model->getSearchType(),
             'from' => $page * $count,
             'size' => $count,
         ];
@@ -77,7 +76,6 @@ class ElasticsearchRepository implements UsersRepository
 
         $searchParams = [
             'index' => $user->getSearchIndex(),
-            'type' => $user->getSearchType()
         ];
 
         return $this->elasticsearch->count($searchParams)['count'];
@@ -117,7 +115,6 @@ class ElasticsearchRepository implements UsersRepository
         $this->elasticsearch->index([
             'id' => $user->id,
             'index' => $user->getSearchIndex(),
-            'type' => $user->getSearchType(),
             'body' => $user->toSearchArray(),
         ]);
     }
@@ -139,7 +136,6 @@ class ElasticsearchRepository implements UsersRepository
 
         $this->elasticsearch->update([
             'index' => $user->getSearchIndex(),
-            'type' => $user->getSearchType(),
             'id' => $id,
             'body' => [
                 'doc' => $docFields
@@ -158,7 +154,6 @@ class ElasticsearchRepository implements UsersRepository
 
         $this->elasticsearch->delete([
             'index' => $user->getSearchIndex(),
-            'type' => $user->getSearchType(),
             'id' => $id,
         ]);
     }
@@ -189,5 +184,50 @@ class ElasticsearchRepository implements UsersRepository
         $searchResult = $this->elasticsearch->search($searchParams);
 
         return $searchResult['hits']['hits'][0]['_source'];
+    }
+
+    /**
+     * Get user with max id.
+     *
+     * @param User $user
+     * @param string $field
+     * @param string $value
+     * @param int $except
+     * @return bool
+     */
+    public function uniqueField(User $user, string $field, string $value, int $except = null): bool
+    {
+        $bool = [
+            'must' => [
+                'match' => [
+                    $field => $value
+                ]
+            ]
+        ];
+
+        if (!empty($except)) {
+            $mustNot = [
+                "must_not" => [
+                    "match" => [
+                        "id" => $except
+                    ]
+                ]
+            ];
+            $bool = array_merge($bool, $mustNot);
+        }
+
+        $searchParams = [
+            'index' => $user->getSearchIndex(),
+            'body' => [
+                'query' => [
+                    'bool' => $bool
+                ],
+                'size' => 1
+            ]
+        ];
+
+        $searchResult = $this->elasticsearch->search($searchParams);
+
+        return isset($searchResult['hits']['hits'][0]) ? false : true;
     }
 }

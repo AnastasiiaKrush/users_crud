@@ -60,4 +60,15 @@ interface UsersRepository
      * @return array
      */
     public function getOneWithMaxID(array $searchable = ['id']): array;
+
+    /**
+     * Get user with max id.
+     *
+     * @param User $user
+     * @param string $field
+     * @param string $value
+     * @param int $except
+     * @return bool
+     */
+    public function uniqueField(User $user, string $field, string $value, int $except = null): bool;
 }

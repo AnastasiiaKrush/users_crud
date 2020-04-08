@@ -10,13 +10,4 @@ class User extends Model
 {
     use SoftDeletes;
     use Searchable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'id', 'name', 'birthday', 'phone_number', 'email', 'password',
-    ];
 }

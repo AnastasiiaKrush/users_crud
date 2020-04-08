@@ -42,10 +42,24 @@ class ReindexCommand extends Command
     {
         $this->info('Indexing all users. This might take a while...');
 
+        $params = [
+            'index' => 'users',
+            'body' => [
+                'mappings' => [
+                    'properties' => [
+                        'email' => [
+                            'type' => 'keyword'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->elasticsearch->indices()->create($params);
+
         foreach (User::cursor() as $user) {
             $this->elasticsearch->index([
                 'index' => $user->getSearchIndex(),
-                'type' => $user->getSearchType(),
                 'id' => $user->getKey(),
                 'body' => $user->toSearchArray(),
             ]);

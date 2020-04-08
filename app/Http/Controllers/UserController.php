@@ -64,13 +64,22 @@ class UserController extends Controller
      */
     public function store(Request $request, UsersRepository $repository): JsonResponse
     {
+        $user = new User();
+
         $request->validate([
             'name' => 'required',
             'birthday' => [
                 'required',
                 'regex:/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/'
             ],
-            'email' => 'required|email|unique:users',
+            'email' => [
+                'required',
+                function ($attribute, $value, $fail) use ($repository, $user) {
+                    if (!$repository->uniqueField($user, $attribute, $value)) {
+                        $fail(ucfirst($attribute) . ' already exists.');
+                    }
+                },
+            ],
             'password' => 'required',
             'password_confirm' => 'required|same:password'
         ]);
@@ -85,7 +94,9 @@ class UserController extends Controller
             ]
         );
 
-        $user = new User($input);
+        foreach ($input as $key => $value) {
+            $user->$key = $value;
+        }
 
         $repository->create($user);
 
@@ -116,13 +127,22 @@ class UserController extends Controller
      */
     public function update(Request $request, UsersRepository $repository, int $id): JsonResponse
     {
+        $user = new User();
+
         $request->validate([
             'name' => 'required',
             'birthday' => [
                 'required',
                 'regex:/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/'
             ],
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => [
+                'required',
+                function ($attribute, $value, $fail) use ($repository, $user, $id) {
+                    if (!$repository->uniqueField($user, $attribute, $value, $id)) {
+                        $fail(ucfirst($attribute) . ' already exists.');
+                    }
+                },
+            ],
         ]);
 
         $repository->update($id, $request->all());
