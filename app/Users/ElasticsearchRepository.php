@@ -52,7 +52,15 @@ class ElasticsearchRepository implements UsersRepository
             ]];
 
         } else {
-            $body = ['body' => []];
+            $body = [
+                'body' => [
+                    'sort' => [
+                        'id' => [
+                            'order' => 'asc'
+                        ]
+                    ]
+                ],
+            ];
         }
 
         $searchParams = array_merge($searchParams, $body);

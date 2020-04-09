@@ -26,7 +26,7 @@
                     <input name="password" id="pass" type="password" class="form-control" placeholder="Password" required >
                 </div>
                 <div class="col">
-                    <input name="password_confirm" id="pass-conf" type="password" class="form-control" placeholder="Confirm password">
+                    <input name="password_confirm" id="pass-conf" type="password" class="form-control" placeholder="Confirm password" required>
                 </div>
             </div>
             <div id="error-message" class="col invalid-feedback"></div>
@@ -99,9 +99,12 @@
                                data: $(form).serialize(),
                            }).done(function() {
                                emailElem.classList.remove('is-invalid');
+
                                setMessage(successMessageElem, "User created successfully.<br/>");
                                setTimeout(() => {setMessage(successMessageElem,'')}, 2000);
+
                                document.getElementById("user-create-form").reset();
+
                                form.classList.remove('was-validated');
                            }).fail(function (request) {
                                let errors = JSON.parse(request.responseText).errors;

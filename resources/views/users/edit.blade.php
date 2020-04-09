@@ -21,7 +21,7 @@
                            class="form-control" required>
                 </div>
                 <div class="col">
-                    <input value="{{ $user['phone_number'] }}" name="phone_number" type="tel" class="form-control"
+                    <input value="{{ $user['phone_number'] }}" id="phone-number" name="phone_number" type="number" class="form-control"
                            placeholder="Phone number">
                 </div>
             </div>
@@ -39,7 +39,8 @@
                     return local.toJSON().slice(0, 10);
                 });
 
-                $('#birthday').attr('max', new Date().toDateInputValue());
+                let currentDate = new Date().toDateInputValue();
+                $('#birthday').attr('max', currentDate);
 
                 window.addEventListener('load', function () {
                     let forms = document.getElementsByClassName('needs-validation');
@@ -48,13 +49,27 @@
                         form.addEventListener('submit', function (e) {
                             let errorMessageElem = document.getElementById("error-message"),
                                 successMessageElem = document.getElementById("success-message"),
-                                formCheck = (form.checkValidity() !== false) ? true : false;
+                                phoneNumberElem = document.getElementById("phone-number"),
+                                birthdayElem = document.getElementById("birthday"),
+                                emailElem = document.getElementById("email"),
+
+                                birthdayCheck = (currentDate >= birthdayElem.value) ? true : false,
+                                formCheck = (form.checkValidity() !== false) ? true : false,
+                                phoneNumberLength = (phoneNumberElem.value.length < 16) ? true : false;
 
                             e.preventDefault();
 
-                            if (!formCheck) {
-                                setMessage(errorMessageElem, "Please, fill all required fields.");
+                            if (!formCheck || !phoneNumberLength || !birthdayCheck) {
+
+                                if (!phoneNumberLength) setMessage(errorMessageElem, "Please, enter phone number a max of 15 digits.");
+                                if (!formCheck) setMessage(errorMessageElem, "Please, fill all required fields.");
+                                if (!birthdayCheck && !formCheck) setMessage(errorMessageElem, "Please, enter correct birthday date.");
+
+                                emailElem.classList.remove('is-invalid');
+                                form.classList.add('was-validated');
+
                                 e.stopPropagation();
+
                                 return;
                             }
 
@@ -67,14 +82,19 @@
                                 async: true,
                                 data: $(form).serialize(),
                             }).done(function () {
+
+                                emailElem.classList.remove('is-invalid');
+
                                 setMessage(successMessageElem, "User updated successfully.<br/>");
-                                setTimeout(() => {
-                                    setMessage(successMessageElem, '')
-                                }, 2000);
+                                setTimeout(() => { setMessage(successMessageElem, '') }, 2000);
+
                                 form.classList.remove('was-validated');
                             }).fail(function (request) {
                                 let errors = JSON.parse(request.responseText).errors;
-                                if (errors.email) setMessage(errorMessageElem, errors.email[0]);
+                                if (errors.email) {
+                                    emailElem.classList.add('is-invalid');
+                                    setMessage(errorMessageElem, errors.email[0]);
+                                }
                             });
                         }, false);
                     });
