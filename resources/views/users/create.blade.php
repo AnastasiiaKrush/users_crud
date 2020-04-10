@@ -18,7 +18,7 @@
                     <input id="birthday" name="birthday" type="date" min="1900-01-01" class="form-control" required>
                 </div>
                 <div class="col">
-                    <input id="phone-number" name="phone_number" type="number" class="form-control" placeholder="Phone number">
+                    <input id="phone-number" name="phone_number" type="text" class="form-control" placeholder="Phone number">
                 </div>
             </div>
             <div class="row">
@@ -43,8 +43,25 @@
                    return local.toJSON().slice(0,10);
                });
 
-                let currentDate = new Date().toDateInputValue();
-                $('#birthday').attr('max', currentDate);
+               let phoneNumberElem = document.getElementById("phone-number"),
+                   currentDate = new Date().toDateInputValue(),
+
+                   isChromium = window.chrome,
+                   winNav = window.navigator,
+                   vendorName = winNav.vendor,
+                   isOpera = typeof window.opr !== "undefined",
+                   isIEedge = winNav.userAgent.indexOf("Edge") > -1,
+                   isIOSChrome = winNav.userAgent.match("CriOS");
+
+               phoneNumberElem.autocomplete = 'off';
+
+               if (isIOSChrome || (isChromium !== null && typeof isChromium !== "undefined" && vendorName === "Google Inc." &&
+                   isOpera === false && isIEedge === false)) {
+                   phoneNumberElem.autocomplete = 'disabled';
+               }
+
+               $('#phone-number').usPhoneFormat({ format: '(xxx) xxx-xxxx' });
+               $('#birthday').attr('max', currentDate);
 
                window.addEventListener('load', function() {
                    let forms = document.getElementsByClassName('needs-validation');
@@ -55,14 +72,12 @@
                                passwordConfirmElem = document.getElementById('pass-conf'),
                                errorMessageElem = document.getElementById("error-message"),
                                successMessageElem = document.getElementById("success-message"),
-                               phoneNumberElem = document.getElementById("phone-number"),
                                birthdayElem = document.getElementById("birthday"),
                                emailElem = document.getElementById("email"),
 
                                birthdayCheck = (currentDate >= birthdayElem.value) ? true : false,
                                passMatch = (passwordElem.value == passwordConfirmElem.value) ? true : false,
-                               formCheck = (form.checkValidity() !== false) ? true : false,
-                               phoneNumberLength = (phoneNumberElem.value.length < 16) ? true : false;
+                               formCheck = (form.checkValidity() !== false) ? true : false;
 
                            e.preventDefault();
 
@@ -71,14 +86,13 @@
                                passwordConfirmElem.classList.remove('is-invalid');
                            }
 
-                           if (!passMatch || !formCheck || !phoneNumberLength || !birthdayCheck) {
+                           if (!passMatch || !formCheck || !birthdayCheck) {
                                if(!passMatch) {
                                    setMessage(errorMessageElem, "The password confirm and password must match.");
                                    passwordElem.classList.add('is-invalid');
                                    passwordConfirmElem.classList.add('is-invalid');
                                }
 
-                               if(!phoneNumberLength) setMessage(errorMessageElem, "Please, enter phone number a max of 15 digits.");
                                if(!formCheck) setMessage(errorMessageElem, "Please, fill all required fields.");
                                if(!birthdayCheck && !formCheck) setMessage(errorMessageElem, "Please, enter correct birthday date.");
 
