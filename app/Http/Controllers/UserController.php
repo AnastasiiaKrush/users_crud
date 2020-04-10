@@ -72,6 +72,10 @@ class UserController extends Controller
                 'required',
                 'regex:/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/'
             ],
+            'phone_number' => [
+                'required',
+                'regex:/^(\(0[5-9][0-9]\)[ ]\d{3}-\d{4})$/'
+            ],
             'email' => [
                 'required',
                 function ($attribute, $value, $fail) use ($repository, $user) {
@@ -134,6 +138,10 @@ class UserController extends Controller
             'birthday' => [
                 'required',
                 'regex:/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/'
+            ],
+            'phone_number' => [
+                'required',
+                'regex:/^(\(0[5-9][0-9]\)[ ]\d{3}-\d{4})$/'
             ],
             'email' => [
                 'required',

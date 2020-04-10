@@ -75,7 +75,8 @@
                                birthdayElem = document.getElementById("birthday"),
                                emailElem = document.getElementById("email"),
 
-                               birthdayCheck = (currentDate >= birthdayElem.value) ? true : false,
+                               birthdayCheck = (currentDate > birthdayElem.value && birthdayElem.min <= birthdayElem.value) ? true : false,
+                               phoneNumberCheck = (/^(\(0[5-9][0-9]\)[ ]\d{3}-\d{4})$/.test(phoneNumberElem.value)) ? true : false,
                                passMatch = (passwordElem.value == passwordConfirmElem.value) ? true : false,
                                formCheck = (form.checkValidity() !== false) ? true : false;
 
@@ -86,7 +87,14 @@
                                passwordConfirmElem.classList.remove('is-invalid');
                            }
 
-                           if (!passMatch || !formCheck || !birthdayCheck) {
+                           if (phoneNumberCheck) phoneNumberElem.classList.remove('is-invalid');
+
+                           if (!passMatch || !formCheck || !birthdayCheck || !phoneNumberCheck) {
+                               if(!phoneNumberCheck) {
+                                   setMessage(errorMessageElem, "Please, enter valid phone number.");
+                                   phoneNumberElem.classList.add('is-invalid');
+                               }
+
                                if(!passMatch) {
                                    setMessage(errorMessageElem, "The password confirm and password must match.");
                                    passwordElem.classList.add('is-invalid');
@@ -125,6 +133,10 @@
                                if (errors.email) {
                                    emailElem.classList.add('is-invalid');
                                    setMessage(errorMessageElem, errors.email[0]);
+                               }
+                               if (errors.phone_number) {
+                                   phoneNumberElem.classList.add('is-invalid');
+                                   setMessage(errorMessageElem, errors.phone_number[0]);
                                }
                            });
                        }, false);

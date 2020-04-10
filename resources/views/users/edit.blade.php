@@ -21,7 +21,8 @@
                            class="form-control" required>
                 </div>
                 <div class="col">
-                    <input value="{{ $user['phone_number'] }}" id="phone-number" name="phone_number" type="number" class="form-control"
+                    <input value="{{ $user['phone_number'] }}" id="phone-number" name="phone_number" type="text"
+                           class="form-control"
                            placeholder="Phone number">
                 </div>
             </div>
@@ -39,7 +40,24 @@
                     return local.toJSON().slice(0, 10);
                 });
 
-                let currentDate = new Date().toDateInputValue();
+                let phoneNumberElem = document.getElementById("phone-number"),
+                    currentDate = new Date().toDateInputValue(),
+
+                    isChromium = window.chrome,
+                    winNav = window.navigator,
+                    vendorName = winNav.vendor,
+                    isOpera = typeof window.opr !== "undefined",
+                    isIEedge = winNav.userAgent.indexOf("Edge") > -1,
+                    isIOSChrome = winNav.userAgent.match("CriOS");
+
+                phoneNumberElem.autocomplete = 'off';
+
+                if (isIOSChrome || (isChromium !== null && typeof isChromium !== "undefined" && vendorName === "Google Inc." &&
+                    isOpera === false && isIEedge === false)) {
+                    phoneNumberElem.autocomplete = 'disabled';
+                }
+
+                $('#phone-number').usPhoneFormat({format: '(xxx) xxx-xxxx'});
                 $('#birthday').attr('max', currentDate);
 
                 window.addEventListener('load', function () {
@@ -49,19 +67,23 @@
                         form.addEventListener('submit', function (e) {
                             let errorMessageElem = document.getElementById("error-message"),
                                 successMessageElem = document.getElementById("success-message"),
-                                phoneNumberElem = document.getElementById("phone-number"),
                                 birthdayElem = document.getElementById("birthday"),
                                 emailElem = document.getElementById("email"),
 
-                                birthdayCheck = (currentDate >= birthdayElem.value) ? true : false,
-                                formCheck = (form.checkValidity() !== false) ? true : false,
-                                phoneNumberLength = (phoneNumberElem.value.length < 16) ? true : false;
+                                birthdayCheck = (currentDate > birthdayElem.value && birthdayElem.min <= birthdayElem.value) ? true : false,
+                                phoneNumberCheck = (/^(\(0[5-9][0-9]\)[ ]\d{3}-\d{4})$/.test(phoneNumberElem.value)) ? true : false,
+                                formCheck = (form.checkValidity() !== false) ? true : false;
 
                             e.preventDefault();
 
-                            if (!formCheck || !phoneNumberLength || !birthdayCheck) {
+                            if (phoneNumberCheck) phoneNumberElem.classList.remove('is-invalid');
 
-                                if (!phoneNumberLength) setMessage(errorMessageElem, "Please, enter phone number a max of 15 digits.");
+                            if (!formCheck || !phoneNumberCheck || !birthdayCheck) {
+
+                                if (!phoneNumberCheck) {
+                                    setMessage(errorMessageElem, "Please, enter valid phone number.");
+                                    phoneNumberElem.classList.add('is-invalid');
+                                }
                                 if (!formCheck) setMessage(errorMessageElem, "Please, fill all required fields.");
                                 if (!birthdayCheck && !formCheck) setMessage(errorMessageElem, "Please, enter correct birthday date.");
 
@@ -86,7 +108,9 @@
                                 emailElem.classList.remove('is-invalid');
 
                                 setMessage(successMessageElem, "User updated successfully.<br/>");
-                                setTimeout(() => { setMessage(successMessageElem, '') }, 2000);
+                                setTimeout(() => {
+                                    setMessage(successMessageElem, '')
+                                }, 2000);
 
                                 form.classList.remove('was-validated');
                             }).fail(function (request) {
@@ -94,6 +118,10 @@
                                 if (errors.email) {
                                     emailElem.classList.add('is-invalid');
                                     setMessage(errorMessageElem, errors.email[0]);
+                                }
+                                if (errors.phone_number) {
+                                    phoneNumberElem.classList.add('is-invalid');
+                                    setMessage(errorMessageElem, errors.phone_number[0]);
                                 }
                             });
                         }, false);
